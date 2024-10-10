@@ -8,3 +8,12 @@ export ANALYTICS_REGION=
 export RUNTIME_TYPE=
 # EVALUATION, SUBSCRIPTION, PAYG
 export BILLING_TYPE=
+
+# Create Apigee Org TRUE or FALSE
+export CREATE_APIGEE_ORG=TRUE
+# Create Apigee Instance TRUE or FALSE
+export CREATE_APIGEE_INSTANCE=TRUE
+# Create Apigee LB TRUE or FALSE
+export CREATE_APIGEE_LB=TRUE
+# Create Apigee Environment & Group TRUE or FALSE
+export CREATE_APIGEE_ENV=TRUE
