@@ -1,15 +1,15 @@
-# apigee-integration-quickstart
+# Apigee + Integration Quickstart
 This is a quickstart for provisioning Apigee & Application Integration in a new Google Cloud project.
 
 As prerequisites you need:
 - A Google Cloud project
-- Your Google Cloud user needs to have these roles (or Owner)
-  - Apigee Organization Admin
-  - Application Integration Admin
-  - Service Usage Admin
-  - Compute Network Admin
-  - Cloud KMS Admin
-  - Compute Admin
+- Your Google Cloud user needs to have these elevated roles or provision (or **Owner**)
+  - **Apigee Organization Admin** (roles/apigee.admin)
+  - **Application Integration** Admin (roles/integrations.integrationAdmin)
+  - **Service Usage Admin** (roles/serviceusage.serviceUsageAdmin)
+  - **Compute Network Admin** (roles/compute.networkAdmin)
+  - **Cloud KMS Admin** (roles/cloudkms.admin)
+  - **Compute Admin** (roles/compute.admin)
 
 These actions are done in the project:
 - Enables Apigee, Application Integration & related APIs in the project (1 min).
@@ -26,7 +26,7 @@ You can run this script very easily in [Google Cloud Shell](https://shell.cloud.
 ```sh
 # first copy the env file and add your project and region details
 cp 1.env.sh 1.env.local.sh
-# edit copied file and add details
+# edit copied file and add project details
 nano 1.env.local.sh
 # source variables
 source 1.env.local.sh
