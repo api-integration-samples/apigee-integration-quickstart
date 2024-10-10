@@ -1,3 +1,10 @@
+if [ "$PROJECT_ID" = "" ]
+then 
+  echo "No Google Cloud project set, exiting... Add project details to 1.env.sh, run 'source 1.env.sh', and try again."
+  exit
+fi
+
+# set project
 gcloud config set project $PROJECT_ID 1>/dev/null 2>/dev/null
 
 # enable APIs
