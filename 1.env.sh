@@ -8,6 +8,10 @@ export ANALYTICS_REGION=
 export RUNTIME_TYPE=
 # EVALUATION, SUBSCRIPTION, PAYG
 export BILLING_TYPE=
+# your billing id (optional)
+export BILLING_ID=
+# a user to add to the project (optional)
+export GCP_ADD_USER=
 
 # Create Apigee Org TRUE or FALSE
 export CREATE_APIGEE_ORG=TRUE
