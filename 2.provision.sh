@@ -67,6 +67,9 @@ then
           --role="roles/apigee.admin"
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
+          --role="roles/apihub.admin"
+      gcloud projects add-iam-policy-binding $PROJECT_ID \
+          --member="user:$GCP_ADD_USER" \
           --role="roles/integrations.integrationAdmin"
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
@@ -312,7 +315,7 @@ EOF
   --data-binary @- << EOF 2>/dev/null
 
 {
-  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apigee-hub1",
+  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
   "config": {}
 }
 EOF
