@@ -4,6 +4,8 @@ export PROJECT_ID=
 export REGION=
 # europe-west1, europe-west2, europe-west4, europe-west6 - https://cloud.google.com/apigee/docs/locations#available-apigee-api-analytics-regions
 export ANALYTICS_REGION=
+# us-central1, europe-west1
+export API_HUB_REGION=europe-west1
 # CLOUD, HYBRID, RUNTIME_TYPE_UNSPECIFIED
 export RUNTIME_TYPE=
 # EVALUATION, SUBSCRIPTION, PAYG
@@ -21,3 +23,5 @@ export CREATE_APIGEE_INSTANCE=TRUE
 export CREATE_APIGEE_LB=TRUE
 # Create Apigee Environment & Group TRUE or FALSE
 export CREATE_APIGEE_ENV=TRUE
+# Create Apigee API Hub TRUE or FALSE
+export CREATE_APIGEE_APIHUB=TRUE

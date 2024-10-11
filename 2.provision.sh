@@ -290,6 +290,35 @@ EOF
 EOF
 fi
 
+# provision API Hub
+if [ "$CREATE_APIGEE_APIHUB" == "TRUE" ]
+then
+
+  # register host
+  curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+
+{
+  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations/$PROJECT_ID",
+  "gcpProject": "projects/$PROJECT_ID"
+}
+EOF
+
+  APIHUB_RESULT=$(curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances?apiHubInstanceId=apihub1" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  --data-binary @- << EOF 2>/dev/null
+
+{
+  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apigee-hub1",
+  "config": {}
+}
+EOF
+  )
+fi
+
 # provision application integration
 curl -X POST "https://integrations.googleapis.com/v1/projects/$PROJECT_ID/locations/$REGION/clients:provision" \
 	-H "Authorization: Bearer $(gcloud auth print-access-token)" \
@@ -300,3 +329,4 @@ curl -X POST "https://integrations.googleapis.com/v1/projects/$PROJECT_ID/locati
 EOF
 
 echo "Application Integration status is ACTIVE"
+
