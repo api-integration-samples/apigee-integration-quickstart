@@ -96,6 +96,7 @@ gcloud services enable compute.googleapis.com
 gcloud services enable servicenetworking.googleapis.com
 gcloud services enable integrations.googleapis.com
 gcloud services enable connectors.googleapis.com
+gcloud services enable cloudkms.googleapis.com
 
 # create default network
 gcloud compute networks create default 1>/dev/null 2>/dev/null
@@ -296,6 +297,22 @@ fi
 # provision API Hub
 if [ "$CREATE_APIGEE_APIHUB" == "TRUE" ]
 then
+
+  # create service identity
+  gcloud beta services identity create --service=apihub.googleapis.com --project=$PROJECT_ID
+
+  # get project number and grant sa roles
+  PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)")
+  SA_EMAIL="service-$PROJECT_NUMBER@gcp-sa-apihub.iam.gserviceaccount.com"
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:$SA_EMAIL" \
+      --role="roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:$SA_EMAIL" \
+      --role="roles/apihub.admin"
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:$SA_EMAIL" \
+      --role="roles/apihub.runtimeProjectServiceAgent"
 
   # register host
   curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
