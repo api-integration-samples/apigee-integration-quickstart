@@ -97,6 +97,7 @@ gcloud services enable servicenetworking.googleapis.com
 gcloud services enable integrations.googleapis.com
 gcloud services enable connectors.googleapis.com
 gcloud services enable cloudkms.googleapis.com
+gcloud services enable aiplatform.googleapis.com
 
 # create default network
 gcloud compute networks create default 1>/dev/null 2>/dev/null
@@ -314,6 +315,10 @@ then
       --member="serviceAccount:$SA_EMAIL" \
       --role="roles/apihub.runtimeProjectServiceAgent"
 
+  # create key ring
+  gcloud kms keyrings create apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION
+  gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption"
+
   # register host
   curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
@@ -333,10 +338,14 @@ EOF
 
 {
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
-  "config": {}
+  "config": {
+    "cmekKeyName": "projects/$PROJECT_ID/locations/$API_HUB_REGION/keyRings/apihub-keyring/cryptoKeys/apihub-key"
+  }
 }
 EOF
   )
+
+  echo "API Hub status is ACTIVE"
 fi
 
 # provision application integration
