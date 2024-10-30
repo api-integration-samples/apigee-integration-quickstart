@@ -113,19 +113,46 @@ echo "Apigee org status is $ORG_STATUS"
 
 if [ "$ORG_STATUS" == "NOT_FOUND" ] && [ "$CREATE_APIGEE_ORG" == "TRUE" ]
 then
-  # create Apigee organization (5 min)
-  curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 1>/dev/null 2>/dev/null
+
+  # prepare networking if VPC peering selected
+  if [ "$DISABLE_VPC_PEERING" == "false" ]
+  then
+    gcloud compute addresses create apigee-range \
+      --global \
+      --prefix-length=22 \
+      --description="Peering range for Apigee services" \
+      --network=$NETWORK \
+      --purpose=VPC_PEERING \
+      --project=$PROJECT_ID
+
+    gcloud compute addresses create google-managed-services-support-1 \
+      --global \
+      --prefix-length=28 \
+      --description="Peering range for supporting Apigee services" \
+      --network=$NETWORK \
+      --purpose=VPC_PEERING \
+      --project=$PROJECT_ID
+
+    gcloud services vpc-peerings connect \
+      --service=servicenetworking.googleapis.com \
+      --network=$NETWORK \
+      --ranges=apigee-range,google-managed-services-support-1 \
+      --project=$PROJECT_ID
+
+    # create Apigee VPC peering organization (5 min)
+    curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
+    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -H 'Content-Type: application/json; charset=utf-8' \
+    --data-binary @- << EOF 1>/dev/null 2>/dev/null
 
 {
   "displayName": "$PROJECT_ID",
   "description": "$PROJECT_ID",
   "analyticsRegion": "$ANALYTICS_REGION",
+  "authorizedNetwork": "$NETWORK_NAME",
   "runtimeType": "$RUNTIME_TYPE",
   "billingType": "$BILLING_TYPE",
-  "disableVpcPeering": "true",
+  "disableVpcPeering": "$DISABLE_VPC_PEERING",
   "addonsConfig": {
     "monetizationConfig": {
       "enabled": "true"
@@ -141,6 +168,36 @@ then
   "portalDisabled": true
 }
 EOF
+  else
+    # create Apigee non-peering organization (5 min)
+    curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
+    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -H 'Content-Type: application/json; charset=utf-8' \
+    --data-binary @- << EOF 1>/dev/null 2>/dev/null
+
+{
+  "displayName": "$PROJECT_ID",
+  "description": "$PROJECT_ID",
+  "analyticsRegion": "$ANALYTICS_REGION",
+  "runtimeType": "$RUNTIME_TYPE",
+  "billingType": "$BILLING_TYPE",
+  "disableVpcPeering": "$DISABLE_VPC_PEERING",
+  "addonsConfig": {
+    "monetizationConfig": {
+      "enabled": "true"
+    },
+    "advancedApiOpsConfig": {
+      "enabled": true
+    },
+    "apiSecurityConfig": {
+      "enabled": true
+    }
+  },
+  "state": "ACTIVE",
+  "portalDisabled": true
+}
+EOF
+  fi
 
   # get org status
   ORG_STATUS=$(curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID" -H "Authorization: Bearer $(gcloud auth print-access-token)" 2>/dev/null | jq --raw-output '.state')
