@@ -7,27 +7,21 @@ export ANALYTICS_REGION=
 # us-central1, europe-west1
 export API_HUB_REGION=
 # CLOUD, HYBRID, RUNTIME_TYPE_UNSPECIFIED
-export RUNTIME_TYPE=CLOUD
+export RUNTIME_TYPE=
 # EVALUATION, SUBSCRIPTION, PAYG
-export BILLING_TYPE=EVALUATION
-# true or false
-export DISABLE_VPC_PEERING=true
-# for VPC peering, the network to use (projects/$HOST_PROJECT/global/networks/$NETWORK)
-export NETWORK=
-# for VPC peering, the subnet to use (projects/$HOST_PROJECT/regions/$REGION/subnetworks/$SUBNET)
-export SUBNET=
+export BILLING_TYPE=
 # your billing id (optional)
 export BILLING_ID=
 # a user to add to the project (optional)
 export GCP_ADD_USER=
 
 # Create Apigee Org TRUE or FALSE
-export CREATE_APIGEE_ORG=TRUE
+export CREATE_APIGEE_ORG=FALSE
 # Create Apigee Instance TRUE or FALSE
-export CREATE_APIGEE_INSTANCE=TRUE
+export CREATE_APIGEE_INSTANCE=FALSE
 # Create Apigee LB TRUE or FALSE
-export CREATE_APIGEE_LB=TRUE
+export CREATE_APIGEE_LB=FALSE
 # Create Apigee Environment & Group TRUE or FALSE
-export CREATE_APIGEE_ENV=TRUE
+export CREATE_APIGEE_ENV=FALSE
 # Create Apigee API Hub TRUE or FALSE
-export CREATE_APIGEE_APIHUB=TRUE
+export CREATE_APIGEE_APIHUB=FALSE
