@@ -336,7 +336,7 @@ then
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
   "config": {
     "cmekKeyName": "projects/$PROJECT_ID/locations/$API_HUB_REGION/keyRings/apihub-keyring/cryptoKeys/apihub-key",
-    "vertex_location": "eu"
+    "vertexLocation": "eu"
   }
 }
 EOF
