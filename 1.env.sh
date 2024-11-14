@@ -1,5 +1,6 @@
 # your gcp project id
 export PROJECT_ID=
+export LOG_FILE="$PROJECT_ID.log.txt"
 # europe-west1, europe-west2, europe-west3, europe-west4, europe-west6 - https://cloud.google.com/apigee/docs/locations#available-apigee-runtime-regions
 export REGION=
 # europe-west1, europe-west2, europe-west4, europe-west6 - https://cloud.google.com/apigee/docs/locations#available-apigee-api-analytics-regions

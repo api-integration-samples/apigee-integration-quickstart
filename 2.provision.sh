@@ -1,4 +1,3 @@
-LOG_FILE="$PROJECT_ID.log.txt"
 echo -e "\nStarting processing: $(date)\n" >> $LOG_FILE
 
 if [ "$PROJECT_ID" = "" ]
@@ -25,12 +24,12 @@ then
     gcloud beta billing projects link $PROJECT_ID --billing-account=$BILLING_ID >> $LOG_FILE 2>&1
   fi
 
-   gcloud services enable orgpolicy.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud services enable orgpolicy.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
   gcloud services enable cloudresourcemanager.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
 
   sleep 5
 
-  PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)")
+  PROJECT_NUMBER=$(gcloud projects list --filter="$PROJECT_ID" --format="value(PROJECT_NUMBER)")
 
   if [ -n "$PROJECT_NUMBER" ]
   then
@@ -316,24 +315,23 @@ then
   # gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption" >> $LOG_FILE 2>&1
 
   # register host
-#   curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
-#   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-#   -H 'Content-Type: application/json; charset=utf-8' \
-#   --data-binary @- << EOF >> $LOG_FILE 2>&1
-
-# {
-#   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations/$PROJECT_ID",
-#   "gcpProject": "projects/$PROJECT_ID"
-# }
-# EOF
-
-  APIHUB_RESULT=$(curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances?apiHubInstanceId=apihub1" \
+  curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
   --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
-  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
+  "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations/$PROJECT_ID",
+  "gcpProject": "projects/$PROJECT_ID"
+}
+EOF
+
+  APIHUB_RESULT=$(curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
+
+{
   "config": {
     "vertexLocation": "eu"
   }
