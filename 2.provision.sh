@@ -1,3 +1,6 @@
+LOG_FILE="$PROJECT_ID.log.txt"
+echo -e "\nStarting processing: $(date)\n" >> $LOG_FILE
+
 if [ "$PROJECT_ID" = "" ]
 then 
   echo "No Google Cloud project set, exiting... Add project details to 1.env.sh, run 'source 1.env.sh', and try again."
@@ -14,24 +17,20 @@ echo "Project status for $PROJECT_ID is $PROJECT_STATUS"
 if [ "$PROJECT_STATUS" == "NOT_FOUND" ]
 then
   echo "Creating project..."
-  gcloud projects create $PROJECT_ID
+  gcloud projects create $PROJECT_ID >> $LOG_FILE 2>&1
 
   if [ -n "$BILLING_ID" ]
   then
     echo "Linking billing id..."
-    gcloud beta billing projects link $PROJECT_ID --billing-account=$BILLING_ID
+    gcloud beta billing projects link $PROJECT_ID --billing-account=$BILLING_ID >> $LOG_FILE 2>&1
   fi
 
-  gcloud config set project $PROJECT_ID
-
-  gcloud services enable orgpolicy.googleapis.com
-  gcloud services enable cloudresourcemanager.googleapis.com
+   gcloud services enable orgpolicy.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud services enable cloudresourcemanager.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
 
   sleep 5
 
-  echo "Setting organizational policy configuration..."
   PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)")
-  echo "Found project number $PROJECT_NUMBER"
 
   if [ -n "$PROJECT_NUMBER" ]
   then
@@ -45,15 +44,15 @@ then
     sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/requireShieldedVm.local.yaml
     sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/vmExternalIpAccess.local.yaml
 
-    gcloud org-policies set-policy ./policies/requireOsLogin.local.yaml --project=$PROJECT_ID
-    gcloud org-policies set-policy ./policies/allowedPolicyMemberDomains.local.yaml --project=$PROJECT_ID
-    gcloud org-policies set-policy ./policies/requireShieldedVm.local.yaml --project=$PROJECT_ID
-    gcloud org-policies set-policy ./policies/vmExternalIpAccess.local.yaml --project=$PROJECT_ID
+    gcloud org-policies set-policy ./policies/requireOsLogin.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+    gcloud org-policies set-policy ./policies/allowedPolicyMemberDomains.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+    gcloud org-policies set-policy ./policies/requireShieldedVm.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+    gcloud org-policies set-policy ./policies/vmExternalIpAccess.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
   fi
 
   echo "Create network, if it doesn't exist..."
-  gcloud services enable compute.googleapis.com
-  gcloud compute networks create default
+  gcloud services enable compute.googleapis.com >> $LOG_FILE 2>&1
+  gcloud compute networks create default >> $LOG_FILE 2>&1
 
   if [ -n "$GCP_ADD_USER" ]
   then
@@ -61,46 +60,43 @@ then
       sleep 5
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/editor"
+          --role="roles/editor" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/apigee.admin"
+          --role="roles/apigee.admin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/apihub.admin"
+          --role="roles/apihub.admin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/integrations.integrationAdmin"
+          --role="roles/integrations.integrationAdmin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/serviceusage.serviceUsageAdmin"
+          --role="roles/serviceusage.serviceUsageAdmin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/compute.networkAdmin"
+          --role="roles/compute.networkAdmin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/cloudkms.admin"
+          --role="roles/cloudkms.admin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
-          --role="roles/compute.admin"
+          --role="roles/compute.admin" >> $LOG_FILE 2>&1
   fi
 fi
 
-# set project
-gcloud config set project $PROJECT_ID 1>/dev/null 2>/dev/null
-
 # enable APIs
-gcloud services enable apigee.googleapis.com
-gcloud services enable apihub.googleapis.com
-gcloud services enable compute.googleapis.com
-gcloud services enable servicenetworking.googleapis.com
-gcloud services enable integrations.googleapis.com
-gcloud services enable connectors.googleapis.com
-gcloud services enable cloudkms.googleapis.com
-gcloud services enable aiplatform.googleapis.com
+gcloud services enable apigee.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable apihub.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable compute.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable servicenetworking.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable integrations.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable connectors.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable cloudkms.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable aiplatform.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
 # create default network
-gcloud compute networks create default 1>/dev/null 2>/dev/null
+gcloud compute networks create default --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
 # get org status
 ORG_STATUS=$(curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID" -H "Authorization: Bearer $(gcloud auth print-access-token)" 2>/dev/null | jq --raw-output '.state')
@@ -117,7 +113,7 @@ then
   curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 1>/dev/null 2>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "displayName": "$PROJECT_ID",
@@ -167,7 +163,7 @@ then
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/instances" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 1>/dev/null 2>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "instance1",
@@ -199,11 +195,11 @@ then
   --network-endpoint-type=private-service-connect \
   --psc-target-service=$TARGET_SERVICE \
   --region=$REGION \
-  --project=$PROJECT_ID 2>/dev/null
+  --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # reserve IP address for Apigee
   gcloud compute addresses create apigee-ipaddress \
-  --ip-version=IPV4 --global --project=$PROJECT_ID 2>/dev/null
+  --ip-version=IPV4 --global --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # store IP address
   IP_ADDRESS=$(gcloud compute addresses describe apigee-ipaddress \
@@ -213,28 +209,28 @@ then
   gcloud compute backend-services create apigee-backend \
   --load-balancing-scheme=EXTERNAL_MANAGED \
   --protocol=HTTPS \
-  --global --project=$PROJECT_ID 2>/dev/null 1>/dev/null
+  --global --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # add the backend service to the NEG
   gcloud compute backend-services add-backend apigee-backend \
   --network-endpoint-group=apigee-neg \
   --network-endpoint-group-region=$REGION \
-  --global --project=$PROJECT_ID 2>/dev/null 1>/dev/null
+  --global --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # create load balancer
   gcloud compute url-maps create apigee-lb \
   --default-service=apigee-backend \
-  --global --project=$PROJECT_ID 2>/dev/null 1>/dev/null
+  --global --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # create certificate
   RUNTIME_HOST_ALIAS=$(echo "$IP_ADDRESS" | tr '.' '-').nip.io
   gcloud compute ssl-certificates create apigee-ssl-cert \
-  --domains="$RUNTIME_HOST_ALIAS" --project "$PROJECT_ID" --quiet 2>/dev/null 1>/dev/null
+  --domains="$RUNTIME_HOST_ALIAS" --project "$PROJECT_ID" --quiet >> $LOG_FILE 2>&1
 
   # create target HTTPS proxy
   gcloud compute target-https-proxies create apigee-proxy \
   --url-map=apigee-lb \
-  --ssl-certificates=apigee-ssl-cert --project=$PROJECT_ID 2>/dev/null 1>/dev/null
+  --ssl-certificates=apigee-ssl-cert --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # create forwarding rule
   gcloud compute forwarding-rules create apigee-fw-rule \
@@ -243,13 +239,13 @@ then
     --address=$IP_ADDRESS \
     --target-https-proxy=apigee-proxy \
     --ports=443 \
-    --global --project=$PROJECT_ID 2>/dev/null 1>/dev/null
+    --global --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # create environment group
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/envgroups" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "dev",
@@ -264,7 +260,7 @@ then
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/environments" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "dev"
@@ -275,7 +271,7 @@ EOF
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/envgroups/dev/attachments" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "dev",
@@ -287,7 +283,7 @@ EOF
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/instances/instance1/attachments" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "environment": "dev"
@@ -307,23 +303,23 @@ then
   SA_EMAIL="service-$PROJECT_NUMBER@gcp-sa-apihub.iam.gserviceaccount.com"
   gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member="serviceAccount:$SA_EMAIL" \
-      --role="roles/cloudkms.cryptoKeyEncrypterDecrypter"
+      --role="roles/cloudkms.cryptoKeyEncrypterDecrypter" >> $LOG_FILE 2>&1
   gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member="serviceAccount:$SA_EMAIL" \
-      --role="roles/apihub.admin"
+      --role="roles/apihub.admin" >> $LOG_FILE 2>&1
   gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member="serviceAccount:$SA_EMAIL" \
-      --role="roles/apihub.runtimeProjectServiceAgent"
+      --role="roles/apihub.runtimeProjectServiceAgent" >> $LOG_FILE 2>&1
 
   # create key ring
-  gcloud kms keyrings create apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION
-  gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption"
+  gcloud kms keyrings create apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION >> $LOG_FILE 2>&1
+  gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption" >> $LOG_FILE 2>&1
 
   # register host
   curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null 1>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations/$PROJECT_ID",
@@ -334,7 +330,7 @@ EOF
   APIHUB_RESULT=$(curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances?apiHubInstanceId=apihub1" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
-  --data-binary @- << EOF 2>/dev/null
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
 
 {
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
@@ -352,7 +348,7 @@ fi
 curl -X POST "https://integrations.googleapis.com/v1/projects/$PROJECT_ID/locations/$REGION/clients:provision" \
 	-H "Authorization: Bearer $(gcloud auth print-access-token)" \
 	-H "Content-Type: application/json" \
-	--data-binary @- << EOF 1>/dev/null 2>/dev/null
+	--data-binary @- << EOF >> $LOG_FILE 2>&1
     
 {}
 EOF
