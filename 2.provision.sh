@@ -312,8 +312,8 @@ then
       --role="roles/apihub.runtimeProjectServiceAgent" >> $LOG_FILE 2>&1
 
   # create key ring
-  gcloud kms keyrings create apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION >> $LOG_FILE 2>&1
-  gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption" >> $LOG_FILE 2>&1
+  # gcloud kms keyrings create apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION >> $LOG_FILE 2>&1
+  # gcloud kms keys create apihub-key --keyring apihub-keyring --project=$PROJECT_ID --location $API_HUB_REGION --purpose "encryption" >> $LOG_FILE 2>&1
 
   # register host
 #   curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/hostProjectRegistrations?hostProjectRegistrationId=$PROJECT_ID" \
@@ -335,7 +335,6 @@ then
 {
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
   "config": {
-    "cmekKeyName": "projects/$PROJECT_ID/locations/$API_HUB_REGION/keyRings/apihub-keyring/cryptoKeys/apihub-key",
     "vertexLocation": "eu"
   }
 }
