@@ -299,7 +299,7 @@ then
   gcloud beta services identity create --service=apihub.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
   # get project number and grant sa roles
-  PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)") >> $LOG_FILE 2>&1
+  PROJECT_NUMBER=$(gcloud projects list --filter="$PROJECT_ID" --format="value(PROJECT_NUMBER)")
   SA_EMAIL="service-$PROJECT_NUMBER@gcp-sa-apihub.iam.gserviceaccount.com"
   gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member="serviceAccount:$SA_EMAIL" \
@@ -336,7 +336,7 @@ then
   "name": "projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances/apihub1",
   "config": {
     "cmekKeyName": "projects/$PROJECT_ID/locations/$API_HUB_REGION/keyRings/apihub-keyring/cryptoKeys/apihub-key",
-    "vertexLocation": "$API_HUB_REGION"
+    "vertex_location": "eu"
   }
 }
 EOF
