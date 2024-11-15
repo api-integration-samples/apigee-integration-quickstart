@@ -284,6 +284,7 @@ EOF
 }
 EOF
 
+  sleep 10
   # attach environment to instance
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/instances/instance1/attachments" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
