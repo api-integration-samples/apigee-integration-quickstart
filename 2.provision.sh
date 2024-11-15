@@ -50,8 +50,8 @@ then
   fi
 
   echo "Create network, if it doesn't exist..."
-  gcloud services enable compute.googleapis.com >> $LOG_FILE 2>&1
-  gcloud compute networks create default >> $LOG_FILE 2>&1
+  gcloud services enable compute.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud compute networks create default --project $PROJECT_ID >> $LOG_FILE 2>&1
 
   if [ -n "$GCP_ADD_USER" ]
   then
@@ -94,7 +94,7 @@ gcloud services enable connectors.googleapis.com --project=$PROJECT_ID >> $LOG_F
 gcloud services enable cloudkms.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
 gcloud services enable aiplatform.googleapis.com --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
-# create default network
+# create default network, if it doesn't exist
 gcloud compute networks create default --project=$PROJECT_ID >> $LOG_FILE 2>&1
 
 # get org status
