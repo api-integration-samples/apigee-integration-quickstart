@@ -83,6 +83,9 @@ then
           --role="roles/compute.admin" >> $LOG_FILE 2>&1
       gcloud projects add-iam-policy-binding $PROJECT_ID \
           --member="user:$GCP_ADD_USER" \
+          --role="roles/run.admin" >> $LOG_FILE 2>&1          
+      gcloud projects add-iam-policy-binding $PROJECT_ID \
+          --member="user:$GCP_ADD_USER" \
           --role="roles/datastore.owner" >> $LOG_FILE 2>&1
   fi
 fi
