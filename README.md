@@ -23,13 +23,20 @@ After running this quickstart script, you can immediately start designing and de
 ## Instructions
 You can run this script very easily in [Google Cloud Shell](https://shell.cloud.google.com).
 
+1. After running step 1 below to create a new environment file, edit the new `1.env.YOUR_PROJECT_ID.sh` file with these main parameters (browse `1.env.sh` for full list):
+  - REGION - the gcp & [apigee runtime region](https://cloud.google.com/apigee/docs/locations#available-apigee-runtime-regions) to deploy to, default is europe-west1.
+  - ANALYTICS_REGION - the [apigee analytics region](https://cloud.google.com/apigee/docs/locations#available-apigee-api-analytics-regions), default is europe-west1.
+  - BILLING_ID - set to your gcp billing id. If the project does not exist, it will be created with this billing id.
+  - GCP_ADD_USER - a gcp user to add to the project, useful if you create the project with an admin user, and want to add a normal user automatically with default roles to work with the created resources (apigee, appint, etc).
+
 ```sh
-# first copy the env file and add your project and region details
-cp 1.env.sh 1.env.local.sh
-# edit copied file and add project details
-nano 1.env.local.sh
+# step 1 - copy base env file for a new project id, change to something unique
+export PROJECT_ID=YOUR_PROJECT_ID
+./0.init.sh $PROJECT_ID
+# step 2 - edit new environment file, set parameters
+nano 1.env.$PROJECT_ID.sh
 # source variables
-source 1.env.local.sh
+source 1.env.$PROJECT_ID.sh
 
 # now do provisioning
 ./2.provision.sh

@@ -179,6 +179,7 @@ then
 EOF
 
   # wait for instance
+  SECONDS=0
   INSTANCE_STATUS=$(curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/instances/instance1" -H "Authorization: Bearer $(gcloud auth print-access-token)" 2>/dev/null | jq --raw-output '.state')
   while [ $INSTANCE_STATUS != "ACTIVE" ]
   do
@@ -187,8 +188,10 @@ EOF
     then
       INSTANCE_STATUS="NOT_FOUND"
     fi
-    
-    echo "Apigee instance status is $INSTANCE_STATUS" >> $LOG_FILE 2>&1
+
+    duration=$SECONDS    
+    echo "Apigee instance status is $INSTANCE_STATUS, waiting for $((duration / 60)) minutes and $((duration % 60)) seconds." >> $LOG_FILE 2>&1
+    echo "Apigee instance status is $INSTANCE_STATUS, waiting for $((duration / 60)) minutes and $((duration % 60)) seconds."
     sleep 120
   done
 
