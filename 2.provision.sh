@@ -270,7 +270,7 @@ fi
 
 if [ "$CREATE_APIGEE_ENV" == "TRUE" ]
 then
-  # create environment
+  # create dev environment
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/environments" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
@@ -304,6 +304,26 @@ EOF
   "environment": "dev"
 }
 EOF
+
+  sleep 10
+  # reapply add-ons to enable for the new environment
+  curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID:setAddons" \
+    -X POST \
+    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -H "Content-type: application/json" \
+    -d '{
+      "addonsConfig": {
+        "advancedApiOpsConfig": {
+          "enabled": true
+        },
+        "monetizationConfig": {
+          "enabled": true
+        },
+        "apiSecurityConfig": {
+          "enabled": true
+        }
+      }
+    }' >> $LOG_FILE 2>&1
 fi
 
 # provision API Hub
@@ -342,6 +362,7 @@ then
 }
 EOF
 
+  # register instance
   APIHUB_RESULT=$(curl -X POST "https://apihub.googleapis.com/v1/projects/$PROJECT_ID/locations/$API_HUB_REGION/apiHubInstances" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H 'Content-Type: application/json; charset=utf-8' \
