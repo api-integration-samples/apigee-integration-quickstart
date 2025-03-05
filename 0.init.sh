@@ -6,3 +6,5 @@ else
 fi
 
 sed -i "/export PROJECT_ID=/c\export PROJECT_ID=$1" 1.env.$1.sh
+
+source 1.env.$1.sh
