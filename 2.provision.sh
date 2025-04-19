@@ -58,7 +58,7 @@ gcloud compute networks create default --project $PROJECT_ID >> $LOG_FILE 2>&1
 if [ -n "$GCP_ADD_USER" ]
 then
   echo "Adding user..."
-  sleep 5
+  sleep 10
   gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="user:$GCP_ADD_USER" \
     --role="roles/editor" >> $LOG_FILE 2>&1
