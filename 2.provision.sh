@@ -17,77 +17,78 @@ if [ "$PROJECT_STATUS" == "NOT_FOUND" ]
 then
   echo "Creating project..."
   gcloud projects create $PROJECT_ID >> $LOG_FILE 2>&1
+fi
 
-  if [ -n "$BILLING_ID" ]
-  then
-    echo "Linking billing id..."
-    gcloud beta billing projects link $PROJECT_ID --billing-account=$BILLING_ID >> $LOG_FILE 2>&1
-  fi
+if [ -n "$BILLING_ID" ]
+then
+  echo "Linking billing id..."
+  gcloud beta billing projects link $PROJECT_ID --billing-account=$BILLING_ID >> $LOG_FILE 2>&1
+fi
 
-  gcloud services enable orgpolicy.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
-  gcloud services enable cloudresourcemanager.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable orgpolicy.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+gcloud services enable cloudresourcemanager.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
 
+PROJECT_NUMBER=$(gcloud projects list --filter="$PROJECT_ID" --format="value(PROJECT_NUMBER)")
+
+if [ -n "$PROJECT_NUMBER" ]
+then
+  cp policies/requireOsLogin.yaml policies/requireOsLogin.local.yaml
+  cp policies/allowedPolicyMemberDomains.yaml policies/allowedPolicyMemberDomains.local.yaml
+  cp policies/requireShieldedVm.yaml policies/requireShieldedVm.local.yaml
+  cp policies/vmExternalIpAccess.yaml policies/vmExternalIpAccess.local.yaml
+
+  sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/requireOsLogin.local.yaml
+  sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/allowedPolicyMemberDomains.local.yaml
+  sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/requireShieldedVm.local.yaml
+  sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/vmExternalIpAccess.local.yaml
+
+  gcloud org-policies set-policy ./policies/requireOsLogin.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud org-policies set-policy ./policies/allowedPolicyMemberDomains.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud org-policies set-policy ./policies/requireShieldedVm.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+  gcloud org-policies set-policy ./policies/vmExternalIpAccess.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
+fi
+
+sleep 5
+
+echo "Create network, if it doesn't exist..."
+gcloud services enable compute.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
+sleep 2
+gcloud compute networks create default --project $PROJECT_ID >> $LOG_FILE 2>&1
+
+if [ -n "$GCP_ADD_USER" ]
+then
+  echo "Adding user..."
   sleep 5
-
-  PROJECT_NUMBER=$(gcloud projects list --filter="$PROJECT_ID" --format="value(PROJECT_NUMBER)")
-
-  if [ -n "$PROJECT_NUMBER" ]
-  then
-    cp policies/requireOsLogin.yaml policies/requireOsLogin.local.yaml
-    cp policies/allowedPolicyMemberDomains.yaml policies/allowedPolicyMemberDomains.local.yaml
-    cp policies/requireShieldedVm.yaml policies/requireShieldedVm.local.yaml
-    cp policies/vmExternalIpAccess.yaml policies/vmExternalIpAccess.local.yaml
-
-    sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/requireOsLogin.local.yaml
-    sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/allowedPolicyMemberDomains.local.yaml
-    sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/requireShieldedVm.local.yaml
-    sed -i "s@{PROJECTNUMBER}@$PROJECT_NUMBER@" policies/vmExternalIpAccess.local.yaml
-
-    gcloud org-policies set-policy ./policies/requireOsLogin.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
-    gcloud org-policies set-policy ./policies/allowedPolicyMemberDomains.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
-    gcloud org-policies set-policy ./policies/requireShieldedVm.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
-    gcloud org-policies set-policy ./policies/vmExternalIpAccess.local.yaml --project=$PROJECT_ID >> $LOG_FILE 2>&1
-  fi
-
-  echo "Create network, if it doesn't exist..."
-  gcloud services enable compute.googleapis.com --project $PROJECT_ID >> $LOG_FILE 2>&1
-  gcloud compute networks create default --project $PROJECT_ID >> $LOG_FILE 2>&1
-
-  if [ -n "$GCP_ADD_USER" ]
-  then
-      echo "Adding user..."
-      sleep 5
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/editor" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/apigee.admin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/apihub.admin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/integrations.integrationAdmin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/serviceusage.serviceUsageAdmin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/compute.networkAdmin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/cloudkms.admin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/compute.admin" >> $LOG_FILE 2>&1
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/run.admin" >> $LOG_FILE 2>&1          
-      gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="user:$GCP_ADD_USER" \
-          --role="roles/datastore.owner" >> $LOG_FILE 2>&1
-  fi
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/editor" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/apigee.admin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/apihub.admin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/integrations.integrationAdmin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/serviceusage.serviceUsageAdmin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/compute.networkAdmin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/cloudkms.admin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/compute.admin" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/run.admin" >> $LOG_FILE 2>&1          
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/datastore.owner" >> $LOG_FILE 2>&1
 fi
 
 # enable APIs

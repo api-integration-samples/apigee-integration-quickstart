@@ -27,8 +27,9 @@ Set default values for the environment variables in the `1.env.sh` file.
 
 ```sh
 # initialize variables in current shell
-. ./0.init.sh YOUR_PROJECT_ID
+./0.init.sh YOUR_PROJECT_ID
 # edit 1.env.YOUR_PROJECT_ID.sh, set parameters
+source 1.env.YOUR_PROJECT_ID.sh
 
 # provision, YOUR_PROJECT_ID will be created, if it doesn't exist
 ./2.provision.sh
