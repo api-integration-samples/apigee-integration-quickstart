@@ -89,6 +89,9 @@ then
   gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="user:$GCP_ADD_USER" \
     --role="roles/datastore.owner" >> $LOG_FILE 2>&1
+  gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="user:$GCP_ADD_USER" \
+    --role="roles/firebase.admin" >> $LOG_FILE 2>&1
 fi
 
 # enable APIs
