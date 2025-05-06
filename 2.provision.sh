@@ -1,5 +1,8 @@
 echo -e "\nStarting processing: $(date)\n" >> $LOG_FILE
 
+# install gcloud beta commands
+echo | gcloud components install beta >> $LOG_FILE 2>&1
+
 if [ "$PROJECT_ID" = "" ]
 then 
   echo "No Google Cloud project set, exiting... Add project details to 1.env.sh, run 'source 1.env.sh', and try again."
