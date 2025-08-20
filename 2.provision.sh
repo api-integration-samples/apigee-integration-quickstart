@@ -171,6 +171,8 @@ echo "Apigee instance status is $INSTANCE_STATUS"
 
 if [ "$INSTANCE_STATUS" == "NOT_FOUND" ] && [ "$CREATE_APIGEE_INSTANCE" == "TRUE" ]
 then
+  # sleep 1 min to make sure org is ready to get an instance...
+  sleep 60
   # create instance (30 min)
   curl -X POST "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID/instances" \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
