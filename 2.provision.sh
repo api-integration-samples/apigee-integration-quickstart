@@ -119,7 +119,7 @@ fi
 
 echo "Apigee org status is $ORG_STATUS"
 
-if [ "$ORG_STATUS" == "NOT_FOUND" ] && [ "$CREATE_APIGEE_ORG" == "TRUE" ]
+if [ "$ORG_STATUS" == "NOT_FOUND" ] && [ "$CREATE_APIGEE_ORG" == "TRUE" ] && [ "$BILLING_TYPE" != "PAYG" ]
 then
   # create Apigee organization (5 min)
   curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
@@ -145,6 +145,38 @@ then
       "enabled": true
     }
   },
+  "state": "ACTIVE",
+  "portalDisabled": true
+}
+EOF
+
+  # get org status
+  ORG_STATUS=$(curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID" -H "Authorization: Bearer $(gcloud auth print-access-token)" 2>/dev/null | jq --raw-output '.state')
+
+  while [ $ORG_STATUS != "ACTIVE" ]
+  do
+    ORG_STATUS=$(curl "https://apigee.googleapis.com/v1/organizations/$PROJECT_ID" -H "Authorization: Bearer $(gcloud auth print-access-token)" 2>/dev/null | jq --raw-output '.state')
+    sleep 3
+  done
+
+  echo "Apigee org status is $ORG_STATUS"
+fi
+
+if [ "$ORG_STATUS" == "NOT_FOUND" ] && [ "$CREATE_APIGEE_ORG" == "TRUE" ] && [ "$BILLING_TYPE" == "PAYG" ]
+then
+  # create Apigee organization (5 min)
+  curl -X POST "https://apigee.googleapis.com/v1/organizations?parent=projects/$PROJECT_ID" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  --data-binary @- << EOF >> $LOG_FILE 2>&1
+
+{
+  "displayName": "$PROJECT_ID",
+  "description": "$PROJECT_ID",
+  "analyticsRegion": "$ANALYTICS_REGION",
+  "runtimeType": "$RUNTIME_TYPE",
+  "billingType": "$BILLING_TYPE",
+  "disableVpcPeering": "true",
   "state": "ACTIVE",
   "portalDisabled": true
 }
